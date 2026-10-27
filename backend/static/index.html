@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operon IDE — Autonomous AI Software Development Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Monaco Editor AMD Loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top Professional IDE Header Bar -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-badge">
+          <span class="brand-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v6"/><path d="M12 15v6"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="M3 12h6"/><path d="M15 12h6"/><path d="m4.93 19.07 4.24-4.24"/><path d="m14.83 9.17 4.24-4.24"/></svg>
+          </span>
+          <span style="font-weight:700; letter-spacing:-0.3px;">Operon<span style="color:var(--accent-primary);margin-left:3px;font-weight:500;">IDE</span></span>
+        </div>
+        <div class="header-separator"></div>
+        <div class="header-meta-pill">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+          <span id="header-ws-title">testingagents</span>
+        </div>
+        <div class="header-meta-pill branch">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          <span id="ws-git-branch-header">main</span>
+        </div>
+      </div>
+
+      <!-- Center: Raycast / VS Code Command Palette Trigger -->
+      <div class="header-center">
+        <div class="command-palette-trigger" onclick="openCommandPalette()">
+          <div class="command-palette-trigger-left">
+            <svg class="palette-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>Search files, tasks, commands...</span>
+          </div>
+          <span class="kbd">Ctrl+K</span>
+        </div>
+      </div>
+
+      <!-- Right: Navigation Segmented Control & Status -->
+      <div class="header-right">
+        <nav class="nav-tabs-segmented">
+          <button class="nav-tab-item active" id="tab-workspace" onclick="switchView('workspace')">
+            Workspace
+          </button>
+          <button class="nav-tab-item" id="tab-execution" onclick="switchView('execution')">
+            Swarm
+          </button>
+          <button class="nav-tab-item" id="tab-intelligence" onclick="switchView('intelligence')">
+            Memory
+          </button>
+          <button class="nav-tab-item" id="tab-completion" onclick="switchView('completion')">
+            Verification
+          </button>
+        </nav>
+        <div class="header-status-pill" id="system-status">
+          <span class="status-dot"></span>
+          <span>Online</span>
+        </div>
+        <div class="header-meta-pill" id="budget-counter" title="Execution Timeout Budget">
+          <span>Budget: <strong id="time-budget-val" style="color:var(--text-primary);">300s</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- VIEW 0: AUTONOMOUS AI SOFTWARE DEVELOPMENT WORKSPACE (IDE) -->
+    <main class="main-content" id="view-workspace" style="display: flex; padding: 0; flex-direction: column; height: calc(100vh - 38px);">
+      <!-- Project Control Toolbar -->
+      <div class="workspace-toolbar">
+        <div class="ws-toolbar-left">
+          <select id="ws-project-select" class="ws-project-selector" onchange="onProjectSelectChanged()">
+            <option value="default">Default Workspace (s:/GitHub_NEW/testingagents)</option>
+          </select>
+          <button class="ws-btn-tool" onclick="openNewProjectModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Project
+          </button>
+          <button class="ws-btn-tool" onclick="promptCreateFile()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            New File
+          </button>
+          <span class="badge badge-info" id="ws-project-status">ANALYZING</span>
+          <span class="badge badge-neutral" id="ws-completion-badge">75% Verified</span>
+          <span class="badge badge-neutral" id="ws-git-branch"><span style="color:var(--status-success);">⎇</span> main</span>
+        </div>
+        <div class="ws-toolbar-right">
+          <button class="ws-btn-tool primary" id="ws-btn-start" onclick="handleStartAIWork()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Start AI Work
+          </button>
+          <button class="ws-btn-tool warn" id="ws-btn-pause" onclick="handlePauseAIWork()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            Pause
+          </button>
+          <button class="ws-btn-tool" id="ws-btn-resume" onclick="handleResumeAIWork()" style="display:none;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Resume
+          </button>
+          <button class="ws-btn-tool danger" id="ws-btn-stop" onclick="handleStopAIWork()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+            Stop
+          </button>
+          <button class="ws-btn-tool" onclick="handleRunWorkspaceTests()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5h0c-1.4 0-2.5-1.1-2.5-2.5V2"/><path d="M8.5 2h7"/><path d="M14.5 16h-5"/></svg>
+            Run Tests
+          </button>
+          <button class="ws-btn-tool" onclick="handleOpenReviewChanges()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>
+            Review Changes (<span id="ws-changes-counter">0</span>)
+          </button>
+          <button class="ws-btn-tool" onclick="handleOpenReportModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            View Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Three-Panel Layout -->
+      <div class="workspace-grid">
+        <!-- Left Panel: Project Explorer -->
+        <aside class="explorer-panel" id="ws-explorer-panel">
+          <div class="explorer-header">
+            <span class="explorer-title">Explorer</span>
+            <div class="explorer-actions">
+              <button class="explorer-icon-btn" title="New File" onclick="promptCreateFile()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+              </button>
+              <button class="explorer-icon-btn" title="New Folder" onclick="promptCreateFolder()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+              </button>
+              <button class="explorer-icon-btn" title="Refresh Tree" onclick="loadWorkspaceTree()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="explorer-search-bar">
+            <input type="text" id="ws-file-search" class="explorer-search-input" placeholder="Search files (Ctrl+P)..." oninput="filterFileTree(this.value)">
+          </div>
+          <div class="explorer-tree" id="ws-file-tree">
+            <!-- Tree nodes injected dynamically with SVG file icons -->
+            <div style="padding: 10px; color: var(--text-muted); font-size: 11px;">Loading project files...</div>
+          </div>
+        </aside>
+
+        <!-- Left Draggable Divider -->
+        <div class="gutter-divider" id="ws-gutter-left"></div>
+
+        <!-- Center Panel: Real Monaco Editor & Collapsible Bottom Tray -->
+        <section class="editor-panel-column" id="ws-center-panel">
+          <!-- Editor Tabs Bar -->
+          <div class="editor-tabs-bar" id="ws-editor-tabs">
+            <!-- Dynamic open tabs -->
+          </div>
+
+          <!-- Breadcrumbs and Action Tools -->
+          <div class="editor-sub-header">
+            <div class="breadcrumbs-trail" id="ws-breadcrumbs">
+              <span>project</span> / <span>select a file to edit</span>
+            </div>
+            <div class="editor-action-tools">
+              <button class="ws-btn-tool" id="ws-btn-save" onclick="saveActiveFile()" title="Save changes (Ctrl+S)">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save
+              </button>
+              <button class="ws-btn-tool" id="ws-btn-revert" onclick="revertActiveFile()" title="Revert to disk copy">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                Revert
+              </button>
+              <button class="ws-btn-tool" id="ws-btn-diff-toggle" onclick="toggleSplitDiffView()" title="Toggle Side-by-Side Diff with Patch">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Split Diff
+              </button>
+            </div>
+          </div>
+
+          <!-- Conflict Warning Banner -->
+          <div class="conflict-banner" id="ws-conflict-banner">
+            <span>⚠️ Conflict Warning: This file was modified externally or by an agent while you had unsaved edits.</span>
+            <div class="conflict-banner-actions">
+              <button class="ws-btn-tool warn" onclick="resolveConflictCompare()">Inspect Diff</button>
+              <button class="ws-btn-tool danger" onclick="resolveConflictOverwrite()">Overwrite Server</button>
+              <button class="ws-btn-tool" onclick="resolveConflictDiscard()">Discard My Edits</button>
+            </div>
+          </div>
+
+          <!-- Monaco Editor Host Container -->
+          <div class="monaco-container-wrapper">
+            <div id="monaco-editor-host"></div>
+            <div id="monaco-diff-host"></div>
+          </div>
+
+          <!-- Bottom Horizontal Divider -->
+          <div class="gutter-divider-horizontal" id="ws-gutter-bottom"></div>
+
+          <!-- Collapsible Bottom Panel -->
+          <div class="bottom-tray-panel" id="ws-bottom-tray">
+            <div class="bottom-tray-header">
+              <div class="bottom-tray-tabs">
+                <button class="bottom-tab-btn active" id="btn-tray-terminal" onclick="switchBottomTab('terminal')">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                  Terminal
+                </button>
+                <button class="bottom-tab-btn" id="btn-tray-problems" onclick="switchBottomTab('problems')">
+                  Problems <span class="bottom-tab-count" id="ws-problems-count">0</span>
+                </button>
+                <button class="bottom-tab-btn" id="btn-tray-output" onclick="switchBottomTab('output')">
+                  Output
+                </button>
+                <button class="bottom-tab-btn" id="btn-tray-tests" onclick="switchBottomTab('tests')">
+                  Test Results
+                </button>
+                <button class="bottom-tab-btn" id="btn-tray-agent-logs" onclick="switchBottomTab('agent-logs')">
+                  Agent Logs
+                </button>
+              </div>
+              <button class="explorer-icon-btn" onclick="toggleBottomTray()" title="Toggle Panel Height">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>
+              </button>
+            </div>
+            <div class="bottom-tray-content">
+              <!-- Tab 1: Terminal -->
+              <div class="tray-tab-view active" id="tray-tab-terminal">
+                <div class="terminal-console-wrapper">
+                  <div class="terminal-scroll-area" id="ws-terminal-output">Operon IDE — Autonomous Engineering Terminal Shell
+Type commands below (e.g. `pytest tests/ -v`, `git status`, `python -V`)...
+$ </div>
+                  <div class="terminal-input-row">
+                    <span class="terminal-prompt-label">dev@operon:~$</span>
+                    <input type="text" id="ws-terminal-input" class="terminal-cli-input" placeholder="Type a shell command and press Enter..." onkeydown="handleTerminalKeyDown(event)">
+                    <span class="terminal-scrub-badge" title="Secrets, Bearer tokens, and keys are automatically redacted">Scrubbed</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 2: Problems -->
+              <div class="tray-tab-view" id="tray-tab-problems">
+                <div id="ws-problems-list" style="color: var(--text-secondary); line-height: 1.6;">
+                  <div style="color: var(--status-success);">✔ Zero syntax errors, forbidden system calls, or security vulnerabilities detected.</div>
+                </div>
+              </div>
+
+              <!-- Tab 3: Output -->
+              <div class="tray-tab-view" id="tray-tab-output">
+                <div id="ws-output-log" style="color: #94a3b8; white-space: pre-wrap;">[Operon Initialized] Autonomous multi-agent development engine ready.</div>
+              </div>
+
+              <!-- Tab 4: Tests -->
+              <div class="tray-tab-view" id="tray-tab-tests">
+                <div id="ws-tests-output" style="color: #94a3b8; white-space: pre-wrap;">Click 'Run Tests' on toolbar or run `pytest` in terminal to execute test suites.</div>
+              </div>
+
+              <!-- Tab 5: Agent Logs -->
+              <div class="tray-tab-view" id="tray-tab-agent-logs">
+                <div id="ws-agent-logs" style="color: #94a3b8; white-space: pre-wrap;">[Operon Swarm Engine] All 10 specialized engineering agents registered and idle.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Draggable Divider -->
+        <div class="gutter-divider" id="ws-gutter-right"></div>
+
+        <!-- Right Panel: Autonomous Agent Team (Structured Engineering Task Monitor) -->
+        <aside class="agent-team-panel" id="ws-agent-panel">
+          <div class="agent-team-header">
+            <span class="agent-team-title">
+              <span>Engineering Agents</span>
+              <span class="active-counter" id="ws-active-agents-count">· 10 Ready</span>
+            </span>
+            <span class="badge badge-neutral" id="ws-swarm-active-badge">Online</span>
+          </div>
+
+          <!-- Human Approval Banner -->
+          <div id="ws-human-approval-box" style="display: none; padding: 10px; background: var(--status-error-bg); border-bottom: 1px solid var(--status-error-border);">
+            <div style="font-weight: 700; color: var(--status-error); font-size: 11px; margin-bottom: 4px;">⚠️ High-Impact Action Requires Approval</div>
+            <div id="ws-approval-desc" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">Destructive DB migration or file overwrite detected.</div>
+            <div style="display: flex; gap: 6px;">
+              <button class="ws-btn-tool primary" id="ws-btn-approve-action" onclick="approvePendingHighImpactAction()">Approve</button>
+              <button class="ws-btn-tool danger" id="ws-btn-reject-action" onclick="rejectPendingHighImpactAction()">Reject</button>
+            </div>
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="agent-filter-pills">
+            <button class="agent-filter-pill active" onclick="filterAgentFeed('all')">All</button>
+            <button class="agent-filter-pill" onclick="filterAgentFeed('active')">Active</button>
+            <button class="agent-filter-pill" onclick="filterAgentFeed('waiting')">Waiting</button>
+            <button class="agent-filter-pill" onclick="filterAgentFeed('failed')">Failed</button>
+            <button class="agent-filter-pill" onclick="filterAgentFeed('completed')">Done</button>
+          </div>
+
+          <!-- Structured Agent List (High-Density Engineering Monitor) -->
+          <div class="agent-team-feed" id="ws-agent-feed">
+            <!-- 10 Specialized Agents rendered as structured rows -->
+            <div id="ws-specialized-agent-cards">
+              <!-- Dynamically rendered structured rows -->
+            </div>
+          </div>
+
+          <!-- Persistent Task Graph Section -->
+          <div class="task-graph-section" id="ws-task-graph-section">
+            <div class="task-graph-header">
+              <span>Task Graph</span>
+              <span class="badge badge-neutral" id="ws-task-count-badge">0 Tasks</span>
+            </div>
+            <div class="task-graph-list" id="ws-task-graph-list">
+              <!-- Tasks injected here -->
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- VIEW 1: SWARM EXECUTION -->
+    <main class="main-content" id="view-execution" style="display: none;">
+      <!-- Left Column: Controls & Agent Status -->
+      <aside class="sidebar-panel">
+        <section class="card control-card">
+          <div class="card-header">
+            <h2>Trigger Test Plan</h2>
+            <span class="badge badge-neutral">Execution Control</span>
+          </div>
+          <form id="trigger-form">
+            <div class="form-group">
+              <label for="project-path">Target Workspace / Repo Path</label>
+              <input type="text" id="project-path" value="sample_targets/billing_service" placeholder="e.g. sample_targets/billing_service" required>
+            </div>
+
+            <div class="form-group">
+              <label for="target-files">Target File(s) (optional)</label>
+              <input type="text" id="target-files" placeholder="e.g. billing.py">
+            </div>
+
+            <div class="form-group">
+              <label for="git-diff">Git Diff for Regression Impact (optional)</label>
+              <textarea id="git-diff" rows="3" placeholder="Paste unified git diff to trigger Test Impact Analysis..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label for="time-budget">Timeout (s)</label>
+                <input type="number" id="time-budget" value="180" min="10" max="1800">
+              </div>
+              <div class="form-group half">
+                <label for="adapter-mode">LLM Adapter</label>
+                <select id="adapter-mode">
+                  <option value="deterministic">Deterministic Engine</option>
+                  <option value="http">Live Model (OpenAI/Gemini)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-launch" class="btn btn-primary btn-block">
+              <span class="btn-icon">&#x25B6;</span> Launch Swarm Execution
+            </button>
+          </form>
+        </section>
+
+        <!-- Coordinated Swarm Status -->
+        <section class="card swarm-card">
+          <div class="card-header">
+            <h2>Specialized Swarm</h2>
+            <span class="badge badge-info">5 Active Agents</span>
+          </div>
+          <div class="agent-list" id="agent-list">
+            <div class="agent-item" data-agent="unit">
+              <div class="agent-dot" id="dot-unit"></div>
+              <div class="agent-info">
+                <strong>1. Unit Testing Agent</strong>
+                <span>AST, Branch Coverage & Mocking</span>
+              </div>
+              <span class="agent-state-badge" id="badge-unit">Idle</span>
+            </div>
+            <div class="agent-item" data-agent="integration">
+              <div class="agent-dot" id="dot-integration"></div>
+              <div class="agent-info">
+                <strong>2. Integration Agent</strong>
+                <span>API Contracts & DB Transactions</span>
+              </div>
+              <span class="agent-state-badge" id="badge-integration">Idle</span>
+            </div>
+            <div class="agent-item" data-agent="regression">
+              <div class="agent-dot" id="dot-regression"></div>
+              <div class="agent-info">
+                <strong>3. Regression Agent</strong>
+                <span>Git Diff Impact & Test Prioritization</span>
+              </div>
+              <span class="agent-state-badge" id="badge-regression">Idle</span>
+            </div>
+            <div class="agent-item" data-agent="performance">
+              <div class="agent-dot" id="dot-performance"></div>
+              <div class="agent-info">
+                <strong>4. Performance Agent</strong>
+                <span>Locust/k6 Profiles, P95/P99 SLAs</span>
+              </div>
+              <span class="agent-state-badge" id="badge-performance">Idle</span>
+            </div>
+            <div class="agent-item" data-agent="e2e">
+              <div class="agent-dot" id="dot-e2e"></div>
+              <div class="agent-info">
+                <strong>5. End-to-End Agent</strong>
+                <span>Playwright Synthetics & DOM Traces</span>
+              </div>
+              <span class="agent-state-badge" id="badge-e2e">Idle</span>
+            </div>
+            <div class="agent-item repair-agent-item" data-agent="repair">
+              <div class="agent-dot" id="dot-repair"></div>
+              <div class="agent-info">
+                <strong>Autonomous Repair Agent</strong>
+                <span>Fault Localization & Diff Synthesis</span>
+              </div>
+              <span class="agent-state-badge" id="badge-repair">Standby</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Center & Right: Execution Timeline, Evidence, and Diff Review -->
+      <section class="main-panel">
+        <!-- Live Execution Timeline / Gantt -->
+        <div class="card timeline-card">
+          <div class="card-header">
+            <h2>Execution Timeline & Orchestrator State</h2>
+            <div class="run-meta" id="current-run-meta">
+              <span class="meta-item">Run ID: <code id="current-run-id">None</code></span>
+              <span class="meta-item">Status: <span class="badge badge-neutral" id="current-run-status">Ready</span></span>
+            </div>
+          </div>
+          <div class="timeline-track" id="timeline-track">
+            <div class="timeline-step" id="step-orch">1. AST Indexing</div>
+            <div class="timeline-step" id="step-unit">2. Unit Tests</div>
+            <div class="timeline-step" id="step-integration">3. Integration</div>
+            <div class="timeline-step" id="step-regression">4. Regression</div>
+            <div class="timeline-step" id="step-repair">5. Autonomous Repair</div>
+            <div class="timeline-step" id="step-verifier">6. Independent Verifier</div>
+          </div>
+        </div>
+
+        <!-- Evidence-Backed Findings & Test Suite Results -->
+        <div class="card results-card">
+          <div class="card-header">
+            <h2>Evidence-Backed Test Results</h2>
+            <div class="results-summary" id="results-summary">
+              <span class="pill pill-pass">Passed: <strong id="count-passed">0</strong></span>
+              <span class="pill pill-fail">Failed: <strong id="count-failed">0</strong></span>
+              <span class="pill pill-cov">Branch Coverage: <strong id="val-coverage">--%</strong></span>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="results-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Test Identifier</th>
+                  <th>Duration</th>
+                  <th>Evidence Details</th>
+                </tr>
+              </thead>
+              <tbody id="results-tbody">
+                <tr>
+                  <td colspan="4" class="empty-state">No test runs executed yet. Launch a swarm run above.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Autonomous Diagnosis & Human Approval Gate -->
+        <div class="card patches-card">
+          <div class="card-header">
+            <h2>Autonomous Program Repair & Human Authorization Gate</h2>
+            <span class="badge badge-warning" id="patches-badge">0 Pending Approval</span>
+          </div>
+          <div id="patches-container">
+            <div class="empty-state">No patches proposed. Invariants and tests are passing cleanly.</div>
+          </div>
+        </div>
+
+        <!-- System Audit Log & Raw Sandbox Traces -->
+        <div class="card console-card">
+          <div class="card-header">
+            <h2>Deterministic Sandbox Audit Logs</h2>
+            <button class="btn btn-sm btn-outline" id="btn-clear-logs">Clear Logs</button>
+          </div>
+          <pre class="console-output" id="console-logs">[System Initialized] Awaiting orchestrated test dispatch...</pre>
+        </div>
+      </section>
+    </main>
+
+    <!-- VIEW 2: AGENT INTELLIGENCE & MEMORY DASHBOARD -->
+    <main class="main-content hidden" id="view-intelligence">
+      <div class="intelligence-grid">
+        <!-- Top KPI Cards -->
+        <div class="kpi-row">
+          <div class="card kpi-card">
+            <div class="kpi-label">Total Experiences Captured</div>
+            <div class="kpi-value" id="kpi-exp-total">0</div>
+            <div class="kpi-subtext">Immutable episodic records stored</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Verified Performance Improvements</div>
+            <div class="kpi-value highlight-green" id="kpi-exp-improved">0</div>
+            <div class="kpi-subtext">Measurable coverage / fix improvements</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Reusable Semantic Lessons</div>
+            <div class="kpi-value highlight-cyan" id="kpi-lessons-total">0</div>
+            <div class="kpi-subtext"><span id="kpi-lessons-validated">0</span> validated & cross-shared</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Active Production Strategies</div>
+            <div class="kpi-value highlight-blue" id="kpi-strategies-active">5</div>
+            <div class="kpi-subtext">Subject to rollback safeguards</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Durable Queue & Worker</div>
+            <div class="kpi-value highlight-yellow" id="kpi-queue-status">0 / 0</div>
+            <div class="kpi-subtext"><span id="kpi-queue-processed">0</span> processed &bull; <span id="kpi-queue-dead">0</span> dead letters</div>
+          </div>
+        </div>
+
+        <!-- Middle Row: Strategy Registry & Semantic Lessons -->
+        <div class="intel-split-row">
+          <!-- Left: Versioned Strategies & Promotion/Rollback -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Versioned Strategy Registry & Rollback Controls</h2>
+              <span class="badge badge-info">Zero-Shot Evaluator</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Agent</th>
+                    <th>Version</th>
+                    <th>Status</th>
+                    <th>Benchmark (Mut/Defect)</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="strategies-tbody">
+                  <tr><td colspan="5" class="empty-state">Loading strategy registry...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right: Semantic Memory Lessons Search -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Semantic Memory & Reusable Lessons</h2>
+              <input type="text" id="lesson-search-input" placeholder="Semantic search lessons (e.g. boundary checks)..." style="width: 250px; font-size: 11px;">
+            </div>
+            <div id="lessons-list" class="lessons-container">
+              <div class="empty-state">No semantic lessons recorded yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Recurring Failure Patterns & Recent Experiences -->
+        <div class="intel-split-row">
+          <div class="card">
+            <div class="card-header">
+              <h2>Recurring Failure Patterns & Origin Breakdown</h2>
+              <span class="badge badge-warning">Root-Cause Taxonomy</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Failure Category</th>
+                    <th>Origin Plane</th>
+                    <th>Frequency</th>
+                  </tr>
+                </thead>
+                <tbody id="failures-tbody">
+                  <tr><td colspan="3" class="empty-state">No recurring failure patterns detected.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Episodic Memory Experience Feed</h2>
+              <span class="badge badge-neutral">Provenance Audit Trail</span>
+            </div>
+            <div id="experience-feed" class="experience-feed-container">
+              <div class="empty-state">No experiences recorded yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- VIEW 3: AUTONOMOUS PROJECT COMPLETION & SELF-REPAIR -->
+    <main class="main-content hidden" id="view-completion">
+      <div class="intelligence-grid">
+        <!-- Top Status & KPI Cards -->
+        <div class="kpi-row">
+          <div class="card kpi-card">
+            <div class="kpi-label">Workflow Engine State</div>
+            <div class="kpi-value highlight-cyan" id="comp-status-val">READY</div>
+            <div class="kpi-subtext" id="comp-stopping-reason">Awaiting project trigger</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Completion Checklist</div>
+            <div class="kpi-value highlight-green" id="comp-checklist-progress">0 / 8</div>
+            <div class="kpi-subtext" id="comp-checklist-sub">All required criteria must pass</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Defects Detected & Resolved</div>
+            <div class="kpi-value highlight-yellow" id="comp-defects-stat">0 / 0</div>
+            <div class="kpi-subtext"><span id="comp-defects-open">0</span> open &bull; <span id="comp-defects-fixed">0</span> fixed</div>
+          </div>
+          <div class="card kpi-card">
+            <div class="kpi-label">Closed-Loop Iterations</div>
+            <div class="kpi-value highlight-blue" id="comp-iteration-stat">0 / 5</div>
+            <div class="kpi-subtext">Remaining budget: <span id="comp-budget-time">300s</span></div>
+          </div>
+        </div>
+
+        <!-- Launch Bar for Autonomous Project Completion -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <h2>Autonomous Project Completion Controller</h2>
+            <span class="badge badge-primary">Closed-Loop Repair Engine</span>
+          </div>
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding: 6px 0;">
+            <input type="text" id="comp-project-path" value="sample_targets/billing_service" placeholder="Repo/workspace path (e.g. sample_targets/billing_service)" style="flex:1; min-width:240px; font-size:12px; padding:8px 12px; background:var(--bg-card-secondary); border:1px solid var(--border-color); border-radius:4px; color:var(--text-primary);">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label style="font-size:11px; color:var(--text-secondary);">Max Iters:</label>
+              <input type="number" id="comp-max-iters" value="5" min="1" max="15" style="width:55px; font-size:11px; padding:6px; background:var(--bg-card-secondary); border:1px solid var(--border-color); border-radius:4px; color:var(--text-primary);">
+            </div>
+            <button id="btn-run-completion" class="btn btn-primary" onclick="launchAutonomousCompletion()">
+              &#x2699; Start Closed-Loop Completion & Repair
+            </button>
+          </div>
+        </div>
+
+        <!-- Middle Row: Completion Checklist & Closed-Loop Timeline -->
+        <div class="intel-split-row">
+          <!-- Left: Project Completion Checklist -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Project Completion Checklist</h2>
+              <span class="badge badge-info" id="comp-badge-progress">8 Criteria</span>
+            </div>
+            <div id="comp-checklist-container" class="lessons-container">
+              <div class="empty-state">Trigger completion engine to generate project checklist.</div>
+            </div>
+          </div>
+
+          <!-- Right: Closed-Loop Iteration & Patch Timeline -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Closed-Loop Repair & Verification Iterations</h2>
+              <span class="badge badge-neutral" id="comp-badge-iters">0 Iterations</span>
+            </div>
+            <div id="comp-iteration-timeline" class="experience-feed-container">
+              <div class="empty-state">No repair iterations executed yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Structured Defect Findings & Safety Approvals -->
+        <div class="intel-split-row">
+          <!-- Left: Defect Findings -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Structured Defect Findings</h2>
+              <span class="badge badge-warning" id="comp-findings-count">0 Open</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Severity</th>
+                    <th>Component</th>
+                    <th>Title & Evidence</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="comp-findings-tbody">
+                  <tr><td colspan="4" class="empty-state">No defect findings detected.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right: Human Safety Gate & Residual Disclosures -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Safety Approval Gates & Residual Risks</h2>
+              <span class="badge badge-info">Human-in-the-Loop</span>
+            </div>
+            <div id="comp-approvals-container" style="padding: 10px 0;">
+              <div class="empty-state">Zero high-impact safety actions pending approval.</div>
+            </div>
+            <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+              <h4 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Residual Limitations & Environmental Disclosures</h4>
+              <ul id="comp-residual-list" style="font-size: 11px; color: var(--text-secondary); padding-left: 18px; line-height: 1.5;">
+                <li>Verified status requires all required criteria to pass with zero critical blockers.</li>
+                <li>Isolated workspace sandbox enforces rollback upon verification failure or regression.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal 1: New Project Creation -->
+  <div class="modal-overlay" id="modal-new-project">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Project in Workspace</h3>
+        <button class="explorer-icon-btn" onclick="closeNewProjectModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Project Name</label>
+          <input type="text" id="new-proj-name" class="explorer-search-input" placeholder="e.g. InventoryService" style="padding: 6px 10px;" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Workspace Directory Path</label>
+          <input type="text" id="new-proj-path" class="explorer-search-input" value="." placeholder="e.g. sample_targets/inventory" style="padding: 6px 10px;" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Requirements & Feature Description</label>
+          <textarea id="new-proj-requirements" class="explorer-search-input" rows="3" placeholder="Describe the software application requirements and features to develop..." style="padding: 6px 10px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Acceptance Criteria (comma-separated or one per line)</label>
+          <textarea id="new-proj-criteria" class="explorer-search-input" rows="2" placeholder="e.g. All API routes return 200, P95 latency < 50ms, Zero unhandled exceptions" style="padding: 6px 10px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="ws-btn-tool" onclick="closeNewProjectModal()">Cancel</button>
+        <button class="ws-btn-tool primary" onclick="submitCreateNewProject()">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Review Code Changes -->
+  <div class="modal-overlay" id="modal-changes">
+    <div class="modal-dialog" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Consolidated Code Changes & Patch Review</h3>
+        <button class="explorer-icon-btn" onclick="closeReviewChangesModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-changes-content">
+        <div style="color: var(--text-muted); font-size: 12px;">No unreviewed patches pending.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="ws-btn-tool" onclick="closeReviewChangesModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Verified Evidence Report -->
+  <div class="modal-overlay" id="modal-report">
+    <div class="modal-dialog" style="max-width: 850px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Verified Completion & Evidence Report</h3>
+        <button class="explorer-icon-btn" onclick="closeReportModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-report-content" style="font-family: var(--font-mono); font-size: 11px; line-height: 1.6; white-space: pre-wrap;">
+        Loading verified evidence report...
+      </div>
+      <div class="modal-footer">
+        <button class="ws-btn-tool primary" onclick="closeReportModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Palette Modal (Ctrl+K) -->
+  <div class="palette-backdrop" id="palette-modal" onclick="onPaletteBackdropClick(event)">
+    <div class="palette-dialog" onclick="event.stopPropagation()">
+      <div class="palette-input-wrapper">
+        <svg class="palette-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="palette-search-input" class="palette-input" placeholder="Type a command or search actions..." oninput="filterPaletteCommands(this.value)" onkeydown="handlePaletteKeyDown(event)">
+        <span class="kbd">ESC</span>
+      </div>
+      <div class="palette-list" id="palette-command-list">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
